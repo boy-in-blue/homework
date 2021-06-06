@@ -3,21 +3,22 @@ import os
 import numpy
 from noise import snoise2
 import random
+from opensimplex import OpenSimplex  # lacking in methods
 
 A4 = 794, 1123
 
-dir = os.listdir('./data/')
+dir = os.listdir("./data/")
 d = {}
 
 for i in dir:
-    d[i[0]] = [Image.open(f'./data/{i}/{im}') for im in os.listdir(f'./data/{i}/')]
+    d[i[0]] = [Image.open(f"./data/{i}/{im}") for im in os.listdir(f"./data/{i}/")]
 
-im = Image.new('RGBA', A4, (0xFF, 0xFF, 0xFF, 0xFF))
+im = Image.new("RGBA", A4, (0xFF, 0xFF, 0xFF, 0xFF))
 nm = numpy.array(im)
 
 
 def white_nose(w, h, f, o):
-    a = int(abs(0x7F*snoise2(w/f, h/f, o)))+0x7F
+    a = int(abs(0x7F * snoise2(w / f, h / f, o))) + 0x7F
     if a < 0xC8:
         a = random.choice([0xD0, 0xD2, 0xD4])
     return a
@@ -30,7 +31,7 @@ for h in range(A4[1]):
         nm[h, w] = (a := (white_nose(w, h, freq, octaves)), a, a, 0xFF)
 
 im = Image.fromarray(nm)
-print(f'f: {fr}, oct = {octaves}')
+print(f"f: {fr}, oct = {octaves}")
 
 
 def pm(y):
@@ -38,10 +39,10 @@ def pm(y):
 
 
 def typechars(typethis):
-    typethis = typethis.split('\n')
+    typethis = typethis.split("\n")
     typethese = []
     for i in typethis:
-        typethese.append(i.split(' '))
+        typethese.append(i.split(" "))
 
     x = random.randint(20, 50)
     y = random.randint(32, 40)
@@ -49,37 +50,59 @@ def typechars(typethis):
 
     for i in typethese:
         for j in i:
-            if len(j)*18 + x > A4[0]:
+            if len(j) * 18 + x > A4[0]:
                 r = random.choice([32, 36, 40])
                 y += r
-                y - random.randint(slant//2, slant)
+                y - random.randint(slant // 2, slant)
                 x = random.randint(20, 50)
                 slant = 0
                 if y > A4[1] - 50:
                     return j
             for k in j:
-                if k in ('f', 'g', 'j', 'p', 'q', 'y', 'G'):
-                    im.paste(a := random.choice(d[k]), (x, (slant := pm(slant)) + y + 8), a)
-                elif k == '‘' or k == '’':
-                    im.paste(a := random.choice(d['\'']), (x, (slant := pm(slant)) + y), a)
-                elif k == '.':
-                    im.paste(a := random.choice(d['☺']), (x, (slant := pm(slant)) + y), a)
-                elif k == '>':
-                    im.paste(a := random.choice(d['♥']), (x, (slant := pm(slant)) + y), a)
-                elif k == '<':
-                    im.paste(a := random.choice(d['♦']), (x, (slant := pm(slant)) + y), a)
-                elif k == '*':
-                    im.paste(a := random.choice(d['♠']), (x, (slant := pm(slant)) + y), a)
-                elif k == ':':
-                    im.paste(a := random.choice(d['○']), (x, (slant := pm(slant)) + y), a)
-                elif k == '/':
-                    im.paste(a := random.choice(d['•']), (x, (slant := pm(slant)) + y), a)
-                elif k == '|':
-                    im.paste(a := random.choice(d['◘']), (x, (slant := pm(slant)) + y), a)
-                elif k == '-':
-                    im.paste(a := random.choice(d['♣']), (x, (slant := pm(slant)) + y), a)
+                if k in ("f", "g", "j", "p", "q", "y", "G"):
+                    im.paste(
+                        a := random.choice(d[k]), (x, (slant := pm(slant)) + y + 8), a
+                    )
+                elif k == "‘" or k == "’":
+                    im.paste(
+                        a := random.choice(d["'"]), (x, (slant := pm(slant)) + y), a
+                    )
+                elif k == ".":
+                    im.paste(
+                        a := random.choice(d["☺"]), (x, (slant := pm(slant)) + y), a
+                    )
+                elif k == ">":
+                    im.paste(
+                        a := random.choice(d["♥"]), (x, (slant := pm(slant)) + y), a
+                    )
+                elif k == "<":
+                    im.paste(
+                        a := random.choice(d["♦"]), (x, (slant := pm(slant)) + y), a
+                    )
+                elif k == "*":
+                    im.paste(
+                        a := random.choice(d["♠"]), (x, (slant := pm(slant)) + y), a
+                    )
+                elif k == ":":
+                    im.paste(
+                        a := random.choice(d["○"]), (x, (slant := pm(slant)) + y), a
+                    )
+                elif k == "/":
+                    im.paste(
+                        a := random.choice(d["•"]), (x, (slant := pm(slant)) + y), a
+                    )
+                elif k == "|":
+                    im.paste(
+                        a := random.choice(d["◘"]), (x, (slant := pm(slant)) + y), a
+                    )
+                elif k == "-":
+                    im.paste(
+                        a := random.choice(d["♣"]), (x, (slant := pm(slant)) + y), a
+                    )
                 elif k == '"':
-                    im.paste(a := random.choice(d['☻']), (x, (slant := pm(slant)) + y - 8), a)
+                    im.paste(
+                        a := random.choice(d["☻"]), (x, (slant := pm(slant)) + y - 8), a
+                    )
                 else:
                     im.paste(a := random.choice(d[k]), (x, (slant := pm(slant)) + y), a)
                 x += random.randint(15, 16)
@@ -87,7 +110,7 @@ def typechars(typethis):
             x += r
         r = random.choice([32, 36, 40])
         y += r
-        y - random.randint(slant//2, slant)
+        y - random.randint(slant // 2, slant)
         if y > A4[1] - 50:
             return i
         x = random.randint(20, 50)
@@ -120,7 +143,8 @@ def typechars(typethis):
     # return x, y
 
 
-t = typechars("""
+t = typechars(
+    """
 — management pressure - Is there pressure to achieve. Is the interaction carried out in the presence of management
 — motivation - What motivates the interaction, Does this encourage or discourage experimentation
 — organizational goals - What is the objective of the organization. (profit, education, etc.) How does this affect the interaction
@@ -132,8 +156,9 @@ b. Form filling
 c. Menu selection
 d. Direct manipulation
 
-""")
+"""
+)
 print(t)
 
 im.show()
-im.save('./1.png')
+im.save("./1.png")
