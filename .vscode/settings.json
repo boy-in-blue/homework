@@ -1,4 +1,7 @@
 {
     "editor.rulers": [72,79],
-    "editor.wordWrap": "on"
+    "editor.wordWrap": "on",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black"
 }
