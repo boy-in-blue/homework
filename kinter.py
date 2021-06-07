@@ -8,9 +8,11 @@ from PIL import Image, ImageTk
 import os
 
 A4 = 794, 1123
+A4X = tuple([int(i // 1.5) for i in A4])
+print(A4X)
 
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
-colors = Palette(temptress="#29161d", wewak="#fa9495")
+pal = Palette(temptress="#29161d", wewak="#fa9495")
 
 
 class Writer:
@@ -21,24 +23,25 @@ class Writer:
 
     def __init__(self, tkinter_instance=None):
         self.thekinter = tkinter_instance
-        self.tinker_sheet = ImageTk.PhotoImage(self.im.resize((A4[0] // 3, A4[1] // 3)))
+        self.tinker_sheet = ImageTk.PhotoImage(self.im.resize(A4X))
         self.tinker_sheet_label = tk.Label(self.thekinter, image=self.tinker_sheet)
-        self.tinker_sheet_label.grid(row=0, column=3, rowspan=2)
+        self.tinker_sheet_label.grid(row=0, column=5, rowspan=2)
         self.d = dict()
         for i in os.listdir("./data/"):
             self.d[i[0]] = [
                 Image.open(f"./data/{i}/{im}") for im in os.listdir(f"./data/{i}/")
             ]
+        self.im_ki_copy = self.im.copy()
 
     def white_noise(self, w, h, f, o):
         a = int(abs(0x7F * snoise2(w / f, h / f, o))) + 0x7F
-        if a < 0xC8:
+        if a < 0xD8:
             a = random.choice([0xD0, 0xD2, 0xD4])
         return a
 
     def create_new_page(self):
         octaves = random.randint(16, 32)
-        freq = (fr := float(random.randint(1, 16))) * octaves
+        freq = (float(random.randint(1, 16))) * octaves
         self.freq = freq
         self.octaves = octaves
         for h in range(A4[1]):
@@ -50,11 +53,13 @@ class Writer:
                     0xFF,
                 )
         self.im = Image.fromarray(self.nm)
+        self.im_ki_copy = self.im.copy()
 
     def pm(self, y):
         return y + random.choice([0, 0, 0, 3, 2, 1])
 
     def typechars(self, typethis):
+        self.im = self.im_ki_copy.copy()
         typethis = typethis.split("\n")
         typethese = []
         for i in typethis:
@@ -73,9 +78,9 @@ class Writer:
                     x = random.randint(20, 50)
                     slant = 0
                     if y > A4[1] - 50:
-                        return j
+                        return self.show_on_page()
                 for k in j:
-                    if k in ("f", "g", "j", "p", "q", "y", "G"):
+                    if k in ("f", "g", "j", "p", "q", "y"):
                         self.im.paste(
                             a := random.choice(self.d[k]),
                             (x, (slant := self.pm(slant)) + y + 8),
@@ -154,39 +159,65 @@ class Writer:
             y += r
             y - random.randint(slant // 2, slant)
             if y > A4[1] - 50:
-                return i
+                return self.show_on_page()
             x = random.randint(20, 50)
             slant = 0
+        # self.im.paste(self.d["ñ"][0], (A4[0]//2, 0), self.d["ñ"][0])
+        self.show_on_page()
+
+    def show_on_page(self):
         self.tinker_sheet_label.grid_forget()
-        self.tinker_sheet = ImageTk.PhotoImage(self.im.resize((A4[0] // 3, A4[1] // 3)))
+        self.tinker_sheet = ImageTk.PhotoImage(self.im.resize(A4X))
         self.tinker_sheet_label = tk.Label(self.thekinter, image=self.tinker_sheet)
-        self.tinker_sheet_label.grid(row=0, column=3, rowspan=2)
+        self.tinker_sheet_label.grid(row=0, column=5, rowspan=2)
 
     def newpageblit(self):
         self.create_new_page()
         self.tinker_sheet_label.grid_forget()
-        self.tinker_sheet = ImageTk.PhotoImage(self.im.resize((A4[0] // 3, A4[1] // 3)))
+        self.tinker_sheet = ImageTk.PhotoImage(self.im.resize(A4X))
         self.tinker_sheet_label = tk.Label(self.thekinter, image=self.tinker_sheet)
-        self.tinker_sheet_label.grid(row=0, column=3, rowspan=2)
+        self.tinker_sheet_label.grid(row=0, column=5, rowspan=2)
+
+    def savefile(self, filename, filetext):
+        self.im.save(f"./{filename}.png")
+        with open(f"./{filename}.txt", "w") as file:
+            file.write(filetext)
 
 
 root = tk.Tk()
 writer = Writer(root)
-root.configure(bg=colors.temptress)
+root.configure(bg=pal.colors["temptress"])
 if os.name != "posix":
     root.iconbitmap("icon.ico")
 
 logo_img = ImageTk.PhotoImage(Image.open("lain.png").resize((64, 64)))
-logo_label = tk.Label(image=logo_img).grid(row=0, column=0)
+tk.Label(image=logo_img).grid(row=0, column=0)
 
-text_entry = tk.Text(root, wrap=tk.WORD, bg=colors.temptress, fg=colors.wewak)
-text_entry.grid(row=1, column=0, columnspan=3)
+file_entry = tk.Entry(root, bg=pal.colors["temptress"], fg=pal.colors["wewak"])
+file_entry.grid(row=0, column=3)
+
+download_button = tk.Button(
+    root,
+    text="Download",
+    bg=pal.colors["temptress"],
+    fg=pal.colors["wewak"],
+    command=lambda: writer.savefile(file_entry.get(), text_entry.get("1.0", "end")),
+)
+download_button.grid(row=0, column=4)
+
+text_entry = tk.Text(
+    root,
+    wrap=tk.WORD,
+    bg=pal.colors["temptress"],
+    fg=pal.colors["wewak"],
+)
+text_entry.grid(row=1, column=0, columnspan=5)
 
 button_process = tk.Button(
     root,
     text="Process",
-    bg=colors.temptress,
-    fg=colors.wewak,
+    bg=pal.colors["temptress"],
+    fg=pal.colors["wewak"],
     command=lambda: writer.typechars(text_entry.get("1.0", "end")),
 )
 button_process.grid(row=0, column=1)
@@ -194,8 +225,8 @@ button_process.grid(row=0, column=1)
 button_generate_new = tk.Button(
     root,
     text="Generate Sheet",
-    bg=colors.temptress,
-    fg=colors.wewak,
+    bg=pal.colors["temptress"],
+    fg=pal.colors["wewak"],
     command=writer.newpageblit,
 )
 button_generate_new.grid(row=0, column=2)
