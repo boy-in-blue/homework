@@ -6,6 +6,14 @@ import numpy
 from palette import Palette
 from PIL import Image, ImageTk
 import os
+from pypresence import Presence
+import time
+
+client_id = '851529902858567681'
+RPC = Presence(client_id) 
+RPC.connect() 
+
+print(RPC.update(state="STATE HERE", details="DETAILS HERE", large_image="NAME OF LARGE IMAGE HERE", small_image="NAME OF SMALL IMAGE HERE", large_text="LARGE IMAGE TEXT HERE", start=time.time()))  # Set the presence
 
 A4 = 794, 1123
 A4X = tuple([int(i // 1.5) for i in A4])
