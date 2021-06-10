@@ -6,7 +6,10 @@ import numpy
 from palette import Palette
 from PIL import Image, ImageTk
 import os
+from pypresence import Presence
+import time
 
+client_id = "851555374020558859"
 A4 = 794, 1123
 A4X = tuple([int(i // 1.5) for i in A4])
 print(A4X)
@@ -20,18 +23,124 @@ class Writer:
     nm = numpy.array(im)
     octaves = 0
     freq = 0
+    rpcimagestate = 36
+    RPC = Presence(client_id)
+    RPC.connect()
+    samay = time.time() - 10000.0
+    lines = list()
 
     def __init__(self, tkinter_instance=None):
         self.thekinter = tkinter_instance
+        # self.logo_img = ImageTk.PhotoImage(Image.open("lain.png").resize((64, 64)))
+        # self.logo_image_label.grid(row=0, column=0)
         self.tinker_sheet = ImageTk.PhotoImage(self.im.resize(A4X))
         self.tinker_sheet_label = tk.Label(self.thekinter, image=self.tinker_sheet)
-        self.tinker_sheet_label.grid(row=0, column=5, rowspan=2)
+        self.tinker_sheet_label.grid(row=0, column=6, rowspan=3)
         self.d = dict()
         for i in os.listdir("./data/"):
             self.d[i[0]] = [
                 Image.open(f"./data/{i}/{im}") for im in os.listdir(f"./data/{i}/")
             ]
         self.im_ki_copy = self.im.copy()
+        self.rpc_change_icon = tk.Button(
+            self.thekinter,
+            text=str(self.rpcimagestate),
+            bg=pal.colors["temptress"],
+            fg=pal.colors["wewak"],
+            command=self.updaterpcimage,
+        )
+        self.rpc_change_icon.grid(row=0, column=5)
+        self.rpc_images = dict()
+        for i in next(os.walk("./lains/"))[2]:
+            self.rpc_images[int(i.split(".")[0])] = ImageTk.PhotoImage(
+                Image.open(f"./lains/{i}").resize((64, 64))
+            )
+
+        self.line_entry_h = tk.Entry(
+            self.thekinter, bg=pal.colors["temptress"], fg=pal.colors["wewak"]
+        )
+        self.line_entry_h.grid(column=1, row=1)
+        self.line_entry_v = tk.Entry(
+            self.thekinter,
+            bg=pal.colors["temptress"],
+            fg=pal.colors["wewak"],
+        )
+        self.line_entry_v.grid(column=3, row=1)
+
+        self.hlinebutton = tk.Button(
+            self.thekinter,
+            text="Horizontal Line",
+            bg=pal.colors["temptress"],
+            fg=pal.colors["wewak"],
+            command=lambda: self.addline(vh="h", pos=self.line_entry_h.get()),
+        )
+        self.hlinebutton.grid(column=2, row=1)
+        self.vlinebutton = tk.Button(
+            self.thekinter,
+            text="Vertical Line",
+            bg=pal.colors["temptress"],
+            fg=pal.colors["wewak"],
+            command=lambda: self.addline(vh="v", pos=self.line_entry_v.get()),
+        )
+        self.vlinebutton.grid(column=4, row=1)
+
+        self.RPC.update(
+            state="Running on NAVI v4.0",
+            details="Tachibana Lab",
+            large_image=str(self.rpcimagestate),
+            small_image="copland",
+            large_text="Lain",
+            small_text="Copland OS Enterprise",
+            start=self.samay,
+        )
+        self.logo_image_label = tk.Label(image=self.rpc_images[self.rpcimagestate])
+        self.logo_image_label.grid(row=0, column=0)
+
+    def drawline(self, xy, vh):
+        if vh == "v":
+            a = random.choice(self.d["ñ"])
+            self.im.paste(
+                a,
+                xy,
+                a,
+            )
+        elif vh == "h":
+            a = random.choice(self.d["ñ"])
+            a = a.rotate(90, expand=1)
+            a.show()
+            self.im.paste(a, xy, a)
+
+    def addline(self, vh, pos):
+        if vh == "v":
+            pos = int(pos), 0
+        elif vh == "h":
+            pos = 0, int(pos)
+        self.lines.append([pos, vh])
+
+    def updaterpcimage(self):
+        self.rpcimagestate += 1
+        self.rpcimagestate %= len(self.rpc_images)
+        self.RPC.update(
+            state="Running on NAVI v4.0",
+            details="Tachibana Lab",
+            large_image=str(self.rpcimagestate),
+            small_image="copland",
+            large_text="Lain",
+            small_text="Copland OS Enterprise",
+            start=self.samay,
+        )
+        self.logo_image_label.grid_forget()
+        self.logo_image_label = tk.Label(image=self.rpc_images[self.rpcimagestate])
+        self.logo_image_label.grid(row=0, column=0)
+        self.rpc_change_icon.grid_forget()
+        self.rpc_change_icon = tk.Button(
+            self.thekinter,
+            text=str(self.rpcimagestate),
+            bg=pal.colors["temptress"],
+            fg=pal.colors["wewak"],
+            command=self.updaterpcimage,
+        )
+        self.rpc_change_icon.grid(row=0, column=5)
 
     def white_noise(self, w, h, f, o):
         a = int(abs(0x7F * snoise2(w / f, h / f, o))) + 0x7F
@@ -52,6 +161,7 @@ class Writer:
                     a,
                     0xFF,
                 )
+        self.lines.clear()
         self.im = Image.fromarray(self.nm)
         self.im_ki_copy = self.im.copy()
 
@@ -166,17 +276,19 @@ class Writer:
         self.show_on_page()
 
     def show_on_page(self):
+        for i in self.lines:
+            self.drawline(i[0], i[1])
         self.tinker_sheet_label.grid_forget()
         self.tinker_sheet = ImageTk.PhotoImage(self.im.resize(A4X))
         self.tinker_sheet_label = tk.Label(self.thekinter, image=self.tinker_sheet)
-        self.tinker_sheet_label.grid(row=0, column=5, rowspan=2)
+        self.tinker_sheet_label.grid(row=0, column=6, rowspan=3)
 
     def newpageblit(self):
         self.create_new_page()
         self.tinker_sheet_label.grid_forget()
         self.tinker_sheet = ImageTk.PhotoImage(self.im.resize(A4X))
         self.tinker_sheet_label = tk.Label(self.thekinter, image=self.tinker_sheet)
-        self.tinker_sheet_label.grid(row=0, column=5, rowspan=2)
+        self.tinker_sheet_label.grid(row=0, column=6, rowspan=3)
 
     def savefile(self, filename, filetext):
         self.im.save(f"./{filename}.png")
@@ -190,8 +302,6 @@ root.configure(bg=pal.colors["temptress"])
 if os.name != "posix":
     root.iconbitmap("icon.ico")
 
-logo_img = ImageTk.PhotoImage(Image.open("lain.png").resize((64, 64)))
-tk.Label(image=logo_img).grid(row=0, column=0)
 
 file_entry = tk.Entry(root, bg=pal.colors["temptress"], fg=pal.colors["wewak"])
 file_entry.grid(row=0, column=3)
@@ -211,7 +321,7 @@ text_entry = tk.Text(
     bg=pal.colors["temptress"],
     fg=pal.colors["wewak"],
 )
-text_entry.grid(row=1, column=0, columnspan=5)
+text_entry.grid(row=2, column=0, columnspan=6)
 
 button_process = tk.Button(
     root,
